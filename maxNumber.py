@@ -44,17 +44,18 @@ the program displays the prompt "Too much digits. Try again"
 
 """
 
-"""
+
 print("Number 3: Finding the average of a list")
 def find_average(numbers):
     if not numbers:
         return "List is empty, cannot compute average."
-    return sum(numbers) / len(numbers)
+    return sum / len(numbers)
 
 numbers = [5, 10, 15, 20, 25]
 average = find_average(numbers)
+print(numbers)
 print(f"The average is: {average}")
-"""
+
 
 print ("Number 4: Finding the GCF of two numbers")
 def find_gcf(num1, num2):
