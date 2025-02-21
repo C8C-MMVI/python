@@ -35,7 +35,7 @@ Algorithm:
 that extracts the user's number to individual data
 5. Program continues by adding each individual variables in step 4 and stores it to variable sum
 5. Display the sum
-6. Unless the user's input exceeds the condition, the program displays the prompt "Too much digits. Try again"
+6. Unless the user's input exceeds the condition in step 4, the program displays the prompt "Too much digits. Try again"
 7. Program ends
 """
 
