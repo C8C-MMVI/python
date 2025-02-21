@@ -9,8 +9,7 @@ print(max_list)
 Algorithm:
 1. Start Program
 2. Declare a list variable numList containing numbers
-3. Declare another variable max_list that determines the maximum number
-in the list
+3. Declare another variable max_list that determines the maximum number in the list
 4. Display the maximum number
 5. Program ends
 """
@@ -32,18 +31,13 @@ else:
 Algorithm:
 1. Start Program
 2. Let the user input a number and store it to variable num
-4. If the variable num is less than or equal to 9999, declare variables
-thousand, hundred, ten, and one that extracts the user's number to
-individual data
-5. Program continues by adding each individual variables and stores it to
-variable sum
+4. If the variable num is less than or equal to 9999, declare variables thousand, hundred, ten, and one
+that extracts the user's number to individual data
+5. Program continues by adding each individual variables in step 4 and stores it to variable sum
 5. Display the sum
-6. Unless the user's input exceeds the condition,
-the program displays the prompt "Too much digits. Try again"
+6. Unless the user's input exceeds the condition, the program displays the prompt "Too much digits. Try again"
 7. Program ends
-
 """
-
 
 print("Number 3: Finding the average of a list")
 def find_average(numbers):
