@@ -17,7 +17,7 @@ Algorithm:
 print ("Number 2: Adding the digits in a number")
 num = input("Enter a number: ")
 
-if (int(num) <= 9999):
+if int(num) <= 9999:
     thousand = int(num) / 1000 % 10
     hundred = int(num) / 100 % 10
     ten = int(num) / 10 % 10
