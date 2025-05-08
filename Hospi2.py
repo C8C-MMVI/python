@@ -1,14 +1,6 @@
 """
-Welcome to the HospiCheck application.
-This program facilitates medical application for small clinics like a barangay
-clinic. The aim for this program is to digitize analog medical applications for
-better process.
-
-Suggestions:
-1. Add the availability of the doctor (via a predetermined schedule)
-2. To prevent an immediate re-schedule/addition/cancellation, there should be
-   a firewall/border
-3. Add an option to clear appointments based on the dates to free up space and/or urgency
+THIS IS A BETA PROGRAM OF HOSPICHECK. FURTHER FIXES ARE NEEDED
+AFTER THE PRE-DEFENSE
 """
 
 import csv
@@ -28,20 +20,22 @@ def load_appointments():
         with open(CSV_FILE, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                patient_id = row['patient_id']
-                if patient_id in patient_records:
-                    continue  # Skip if already loaded
+                try:
+                    patient_id = row['patient_id']
+                    if patient_id in patient_records:
+                        continue  # Skip if already loaded
 
-                urgency = int(row['urgency'])
-                name = row['patient_name']
-                date = row['date']
+                    urgency = int(row['urgency'])
+                    name = row['patient_name']
+                    date = row['date']
 
-                heapq.heappush(appointments, (urgency, patient_id, name, date))
-                appointments_by_date[date] += 1
-                patient_records[patient_id] = (name, date, urgency)
+                    heapq.heappush(appointments, (urgency, patient_id, name, date))
+                    appointments_by_date[date] += 1
+                    patient_records[patient_id] = (name, date, urgency)
+                except (ValueError, KeyError) as e:
+                    print(f"Skipping corrupted row {row}: {e}")
     except FileNotFoundError:
         pass
-
 
 # Save appointments to CSV
 def save_appointments():
@@ -52,7 +46,6 @@ def save_appointments():
             writer.writerow([urgency, patient_id, name, date])
 
 # Display help
-
 def show_help():
     print("""How to use HospiCheck:
     1. You can book, reschedule, or cancel appointments on Current Appointment List.
@@ -61,14 +54,13 @@ def show_help():
     3. Only a maximum of 5 appointments are allowed per day in this system. Free up some space if they've
        arrived or canceled their appointment
         """)
-    go_back = input("If you understood all, enter 1 to return to menu: ")  # returns to the main menu
+    go_back = input("If you understood all, enter 1 to return to menu: ")
     if go_back == '1':
         return main()
 
 # Display appointment list
-
 def display_appointments():
-    if not appointments: # translation: if there is/are no appointments
+    if not appointments:
         print("There are no appointments. Would you like to add? Enter 1 for yes, 0 for no")
         return input("Choice: ") == '1'
     print("Current Appointments:")
@@ -77,35 +69,35 @@ def display_appointments():
     return handle_existing_appointments()
 
 # Handle existing appointments menu
-
 def handle_existing_appointments():
-    print("\nWould you like to reschedule, add more, or cancel an appointment?")
-    print("""Enter 0 to Reschedule
+    print("\nWould you like to reschedule, add more, cancel an appointment, or clear by date?")
+    print("""Enter 0 to Reschedule by Date
 Enter 1 to Add another
 Enter 2 to Cancel
-Enter 3 to return to main menu""")
+Enter 3 to Clear appointments by date
+Enter 4 to return to main menu""")
     choice = input("Choice: ")
     if choice == '0':
-        reschedule_appointment()
+        reschedule_by_date()
     elif choice == '1':
         book_appointment()
     elif choice == '2':
         cancel_appointment()
+    elif choice == '3':
+        clear_appointments_by_date()
     return False
 
 # Book appointment
-
 def book_appointment():
     print("Book an Appointment")
     patient_id = input("Enter Patient ID: ")
     name = input("Enter Patient Name: ")
     urgency = int(input("Enter Urgency (0 for Emergency, 1 for Routine): "))
 
-    # Suggest the earliest available day for routine
     date = input("Enter Appointment Date: ")
     if urgency == 1:
         for offset in range(30):
-            proposed_date = date  # Replace with proper date arithmetic if desired
+            proposed_date = date
             if appointments_by_date[proposed_date] < 5:
                 date = proposed_date
                 break
@@ -120,51 +112,35 @@ def book_appointment():
     save_appointments()
     print("Appointment booked.")
 
-# Method reschedule_appointment reschedules an existing appointment
-
-def reschedule_appointment():
+# Reschedule appointments by date
+def reschedule_by_date():
     print("""----------------------------------------------
-Reschedule an Appointment""")
-    patient_id = input("Enter Patient ID to reschedule: ")
-    if patient_id not in patient_records:
-        print("Patient not found.")
-        return
-
-    # Get current details
-    name, old_date, urgency = patient_records[patient_id]
-
-    # Remove old appointment
-    appointments[:] = [appt for appt in appointments if appt[1] != patient_id]
-    heapq.heapify(appointments)
-    appointments_by_date[old_date] -= 1
-    del patient_records[patient_id]
-    save_appointments()
-
-    # Ask only for new date
-    print(f"Rescheduling for {name} (ID: {patient_id}), current urgency: {'Emergency' if urgency == 0 else 'Routine'}")
+Reschedule Appointments by Date""")
+    old_date = input("Enter the date to reschedule: ")
     new_date = input("Enter new Appointment Date: ")
 
-    if urgency == 1:
-        for offset in range(30):
-            proposed_date = new_date  # Optionally apply date shifting
-            if appointments_by_date[proposed_date] < 5:
-                new_date = proposed_date
-                break
-
-    if appointments_by_date[new_date] >= 5:
-        print("Date full. Cannot reschedule.")
+    to_reschedule = [appt for appt in appointments if appt[3] == old_date]
+    if not to_reschedule:
+        print("No appointments found on that date.")
         return
 
-    # Inserts the new rescheduled appointment
-    heapq.heappush(appointments, (urgency, patient_id, name, new_date))
-    appointments_by_date[new_date] += 1
-    patient_records[patient_id] = (name, new_date, urgency)
-    save_appointments()
-    print("Appointment rescheduled.")
+    if appointments_by_date[new_date] + len(to_reschedule) > 5:
+        print("New date would exceed maximum appointments. Cannot reschedule.")
+        return
 
+    for appt in to_reschedule:
+        urgency, patient_id, name, _ = appt
+        appointments.remove(appt)
+        heapq.heappush(appointments, (urgency, patient_id, name, new_date))
+        patient_records[patient_id] = (name, new_date, urgency)
+
+    appointments_by_date[new_date] += len(to_reschedule)
+    appointments_by_date[old_date] = 0
+    heapq.heapify(appointments)
+    save_appointments()
+    print(f"Rescheduled {len(to_reschedule)} appointments from {old_date} to {new_date}.")
 
 # Cancel appointment
-
 def cancel_appointment():
     print("""----------------------------------------------
 Cancel an Appointment""")
@@ -180,8 +156,28 @@ Cancel an Appointment""")
     save_appointments()
     print("Appointment canceled.")
 
-# Main interface / overall program execution
+# Clear appointments by date
+def clear_appointments_by_date():
+    print("""----------------------------------------------
+Clear Appointments by Date""")
+    target_date = input("Enter the date to clear: ")
+    global appointments
+    cleared = [appt for appt in appointments if appt[3] == target_date]
+    if not cleared:
+        print("No appointments found on that date.")
+        return
 
+    appointments = [appt for appt in appointments if appt[3] != target_date]
+    heapq.heapify(appointments)
+
+    for _, patient_id, _, _ in cleared:
+        if patient_id in patient_records:
+            del patient_records[patient_id]
+    appointments_by_date[target_date] = 0
+    save_appointments()
+    print(f"Cleared {len(cleared)} appointments on {target_date}.")
+
+# Main interface
 def main():
     load_appointments()
     while True:
